@@ -1,94 +1,82 @@
-# RWalks
+# RWalks: Random Walks as Attribute Diffusers for Filtered Vector Search
 
-Filtered Approximate nearest neighbor search using graph walks as attribute diffusers
+## Installation
 
-## Create an datset for Filtered - ANN
+Follow these steps to set up the project:
 
-- Arxiv dataset (2M vector, 384 dim, cosine distance)
+### Step 1: Create and Activate a Virtual Environment
 
-First download the raw dataset from [qdrant/ann-filtering-benchmark-datasets](https://github.com/qdrant/ann-filtering-benchmark-datasets), Then use this code snippet :
+First, create a virtual environment and activate it.
 
-```python
-config = FANNConfig(
-    data_source_path="/Users/mac/Downloads/arxiv",
-    data_sink_path="/Users/mac/dev/gwad-ann/data/arxiv",
-    dataset_name="arxiv_100k",
-    distance_type="cosine",
-    train_ratio=0.05,
-    selectivity_range=[0.05, 0.1, 0.2, 0.3, 0.4],
-)
-
-arxiv_data_loader = ArxivDataLoader(config)
-arxiv_data_loader.create()
-
-data = h5py.File(
-    f"{config.data_sink_path}/{config.dataset_name}.h5", 'r')
-for key in data.keys():
-    print(key)
-    print(data[key].shape)
+#### On Windows:
+```sh
+python -m venv myenv
+myenv\Scripts\activate
+```
+####  On macOS and Linux:
+```sh
+python3 -m venv myenv
+source myenv/bin/activate
+```
+### Step 2: Install Requirements
+With the virtual environment activated, install the required packages listed in requirements.txt.
+```sh
+pip install -r requirements.txt
 ```
 
-- Sift1M (1M vector, 128 dim, eucliden distance)
+### Step 3: Build and Install RWalks
+Navigate to the indices/hnsw-base directory and run the following commands to clean and install the project.
 
-```python
-config = FANNConfig(
-    data_source_path="/Users/mac/Downloads/sift_base.tar.gz",
-    data_sink_path="/Users/mac/dev/gwad-ann/data/sift",
-    dataset_name="sift_50k",
-    distance_type="l2",
-    train_ratio=0.05,
-    selectivity_range=[0.05, 0.1, 0.2, 0.3, 0.4],
-)
-
-arxiv_data_loader = Sift1MDataLoader(config)
-arxiv_data_loader.create()
-
-data = h5py.File(
-    f"{config.data_sink_path}/{config.dataset_name}.h5", 'r')
-for key in data.keys():
-    print(key)
-    print(data[key].shape)
-
+```sh
+cd indices/hnsw-base
+make clean && pip install .
 ```
 
 ## Run experiment :
+We provide a 50k subset of the Sift dataset to try the index building and search. you can provide your own data. We vary search parameter ef (10,100,500) and track QPS, and Recall.
 
 ```shell
 $python3 run.py \
-        --index_name hnsw-base \
-        --data_dir /Users/mac/dev/gwad-ann/data/sift/sift_200k.h5 \
-        --dts_type cosine \
-        --selectivity 0.2 \
-        --use_attr_in_train True \
-        --M 5 \
-        --ef_construction 100
-
-loading data to memory (/Users/mac/dev/gwad-ann/data/sift/sift_200k.h5) ...
-2023-12-06 21:11:54.932 | INFO     | context:load_data:104 - 📊 Data loaded successfully. Samples: 200000, Dimensionality: 128
-2023-12-06 21:12:09.795 | INFO     | context:build_index:125 - 🏗️ Index built successfully in 14.86 seconds -  Index Size: 0.25 GB
-2023-12-06 21:12:09.796 | INFO     | context:get_stats:129 - 🧪 Evaluating index ...
-2023-12-06 21:12:09.979 | INFO     | context:get_stats:154 - 🧪 Evaluation completed.
+        --data_dir data/sift_50k_s_005.h5 \
+        --dts_type l2 \
+        --M 32 \
+        --ef_construction 200
+        --efs 10,100,500
+        --hybrid_factors 0.06
+        --pron_factors 0.0
+```
+```shell
+loading data to memory (/Users/mac/dev/RWalks-vldb/data/sift_50k_s_005.h5) ...
+2024-07-26 23:49:03.439 | INFO     | context:load_data:106 - 📊 Data loaded successfully. Samples: 50000, Dimensionality: 128
+2024-07-26 23:49:57.467 | INFO     | context:build_index:159 - 🏗️ Index built successfully in 5.59 seconds -  Index Size: 0.05 GB
+Search Params : {'k': 10, 'ef': 10, 'hybrid_factor': 0.06, 'pron_factor': 0.0}
+2024-07-26 23:49:57.729 | INFO     | context:get_stats:198 - 🧪 Evaluation completed.
 Stats:--------------------
-{'qps': 81026, 'recalls': {'top10': 0.05}}
+{'qps_4_threads': 82223, 'recalls': {'top10': np.float64(0.243)}}
 ---------------------------
-2023-12-06 21:12:10.003 | INFO     | context:get_deep_stats:161 - 🧪 Deep Evaluation started ...
-2023-12-06 21:12:10.522 | INFO     | context:get_deep_stats:182 - 🧪 Deep Evaluation completed.
+2024-07-26 23:49:57.730 | INFO     | context:get_deep_stats:209 - 🧪 Deep Evaluation started ...
+2024-07-26 23:49:58.185 | INFO     | context:get_deep_stats:234 - 🧪 Deep Evaluation completed.
 Deep stats (Latency go brrrr) :--------------------
-{
-    'qps': 21777,
-    'recalls': {'top10': 0.05},
-    'valid_ratio': {
-        'valid_ratio_max': 0.0,
-        'valid_ratio_min': 0.0,
-        'valid_ratio_mean': 0.0,
-        'valid_ratio': array([0., 0., 0., ..., 0., 0., 0.], dtype=float32)
-    },
-    'nhops': {
-        'nhops_max': 31,
-        'nhops_min': 10,
-        'nhops_mean': 13.3877,
-        'nhops': array([12, 15, 16, ..., 11, 13, 11], dtype=int32)
-    }
-}
+{'valid_ratio_max': np.float32(1.0), 'valid_ratio_min': np.float32(1.0), 'valid_ratio_mean': np.float32(1.0), 'valid_ratio': array([1., 1., 1., ..., 1., 1., 1.], dtype=float32)}
+{'nhops_max': np.int32(28), 'nhops_min': np.int32(1), 'nhops_mean': np.float64(12.6753), 'nhops': array([13, 11, 10, ..., 12, 10, 10], dtype=int32)}
 ---------------------------
+2024-07-26 23:49:58.188 | INFO     | context:get_stats:174 - 🧪 Evaluating index ...
+Search Params : {'k': 10, 'ef': 10, 'hybrid_factor': 0.06, 'pron_factor': 0.0}
+2024-07-26 23:54:22.563 | INFO     | context:get_stats:198 - 🧪 Evaluation completed.
+Stats:--------------------
+{'qps_4_threads': 100565, 'recalls': {'top10': np.float64(0.242)}}
+---------------------------
+2024-07-26 23:54:22.564 | INFO     | context:get_stats:174 - 🧪 Evaluating index ...
+Search Params : {'k': 10, 'ef': 100, 'hybrid_factor': 0.06, 'pron_factor': 0.0}
+2024-07-26 23:54:23.105 | INFO     | context:get_stats:198 - 🧪 Evaluation completed.
+Stats:--------------------
+{'qps_4_threads': 20844, 'recalls': {'top10': np.float64(0.937)}}
+---------------------------
+2024-07-26 23:54:23.106 | INFO     | context:get_stats:174 - 🧪 Evaluating index ...
+Search Params : {'k': 10, 'ef': 500, 'hybrid_factor': 0.06, 'pron_factor': 0.0}
+2024-07-26 23:54:25.269 | INFO     | context:get_stats:198 - 🧪 Evaluation completed.
+Stats:--------------------
+{'qps_4_threads': 4752, 'recalls': {'top10': np.float64(0.997)}}
+---------------------------
+
 ```
