@@ -80,3 +80,13 @@ Stats:--------------------
 ---------------------------
 
 ```
+
+## Data Layout
+
+For test purposes, data is provided as an h5 file containing 5 datasets: `neighbors`, `test_attr_vectors`, `test_vectors`, `train_attr_vectors`, and `train_vectors`.
+
+- `train_vectors` and `test_vectors` are NumPy arrays of shape (N*d), where N is the number of vectors and d is the vector dimension.
+- `train_attr_vectors` is a 2D NumPy array containing 0/1 values encoding the attributes. Its shape is (N*p), where p is the number of all possible attributes.
+- `test_attr_vectors` same as train_attr_vectors containing query filters.
+- `neighbors` is a 2D array containing the K-NN neighbors for each point.
+
