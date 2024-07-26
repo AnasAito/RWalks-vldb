@@ -91,16 +91,16 @@ def run_experiment(exp_config):
         print("Stats:--------------------")
         rprint(stats)
         print("---------------------------")
-        deep_stats = evaluator.get_deep_stats(search_params_atom)
-        print("Deep stats (Latency go brrrr) :--------------------")
-        rprint(deep_stats["valid_ratio"])
-        rprint(deep_stats["nhops"])
-        print("---------------------------")
-        results.append({**stats, **deep_stats, **search_params_atom,
-                       **exp_config.index_params,
-                       **{"selectivity": exp_config.selectivity,
-                        "index_size": evaluator.data_stats["index_size"],
-                          "built_time": evaluator.data_stats["built_time"]}})
+        # deep_stats = evaluator.get_deep_stats(search_params_atom)
+        # print("Deep stats (Latency go brrrr) :--------------------")
+        # rprint(deep_stats["valid_ratio"])
+        # rprint(deep_stats["nhops"])
+        # print("---------------------------")
+        # results.append({**stats, **deep_stats, **search_params_atom,
+        #                **exp_config.index_params,
+        #                **{"selectivity": exp_config.selectivity,
+        #                 "index_size": evaluator.data_stats["index_size"],
+        #                   "built_time": evaluator.data_stats["built_time"]}})
     return results
 
 

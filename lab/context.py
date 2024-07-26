@@ -107,7 +107,7 @@ class IndexPerformanceEvaluator:
             f"📊 Data loaded successfully. Samples: {self.data_stats['num_samples']}, Dimensionality: {self.data_stats['dimensionality']}")
         return self
 
-    def build_index(self, index_params, use_cache=True):
+    def build_index(self, index_params, use_cache=False):
         index_signature = {
             "M": index_params["M"],
             "ef_construction": index_params["ef_construction"],
