@@ -1,5 +1,5 @@
 # RWalks: Random Walks as Attribute Diffusers for Filtered Vector Search
-
+The repo provides the code for RWalks and supplementary materials. 
 ## Installation
 
 Follow these steps to set up the project:
